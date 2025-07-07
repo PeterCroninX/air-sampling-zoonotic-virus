@@ -28,5 +28,5 @@ The findings demonstrate that environmental sampling is a highly sensitive and e
 ## Citation
 If you use this repository in your research, please cite:
 
-**[Your Full Citation Here]**
+**[Cronin, P., Siegers, J., Heang, V., Tok, S., Sin, S., Sievers, B., Omondi, V., Nuon, S., Chhel, K., Nouhin, J. and Chim, V., 2025. Air sampling accurately captures circulating zoonotic viral diversity emerging from poultry live-animal markets. Research Square, pp.rs-3.]**
 
