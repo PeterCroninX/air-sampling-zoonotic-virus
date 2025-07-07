@@ -75,6 +75,92 @@ group_palette <- c(
   "Cage" = "#D55E00")
 
 #================================================
+#### Alpha-Diversity - Poultry Viruses
+#================================================
+Species <- read.xlsx("Avian_Species_Count.xlsx", rowNames = TRUE)
+Metadata <- read.xlsx("Metadata.xlsx", rowNames = TRUE)
+
+Species <- (Species > 0) * 1
+Species <- t(Species)
+Species <- as.data.frame(Species)
+
+ASV_Alpha <- otu_table(Species, taxa_are_rows = TRUE)
+Metadata <- sample_data(Metadata)
+physeq <- phyloseq(ASV_Alpha, Metadata)
+
+Alpha_Diversity <- estimate_richness(
+  physeq, split = TRUE,
+  measures = c("Observed", "Shannon", "Simpson", "Chao1")
+)
+
+Alpha_Diversity <- cbind(Alpha_Diversity, as.data.frame(sample_data(physeq)))
+Alpha_Diversity$Location_Grouping <- as.factor(Alpha_Diversity$Location_Grouping)
+
+Kruskall_Observed <- kwAllPairsDunnTest(Alpha_Diversity$Observed, Alpha_Diversity$Location_Grouping, p.adjust.method = "fdr")
+#write.xlsx(Kruskall_Observed$p.value, file ="Supplementary_Files/Supplementary_Kruskall_Alpha_Diversity_Observed.xlsx", rowNames = TRUE)
+Kruskall_Chao1 <- kwAllPairsDunnTest(Alpha_Diversity$Chao1, Alpha_Diversity$Location_Grouping, p.adjust.method = "fdr")
+#write.xlsx(Kruskall_Chao1$p.value, file ="Supplementary_Files/Supplementary_Kruskall_Alpha_Diversity_Chao1.xlsx", rowNames = TRUE)
+Kruskall_Shannon <- kwAllPairsDunnTest(Alpha_Diversity$Shannon, Alpha_Diversity$Location_Grouping, p.adjust.method = "fdr")
+#write.xlsx(Kruskall_Shannon$p.value, file ="Supplementary_Files/Supplementary_Kruskall_Alpha_Diversity_Shannon.xlsx", rowNames = TRUE)
+Kruskall_Simpson <- kwAllPairsDunnTest(Alpha_Diversity$Simpson, Alpha_Diversity$Location_Grouping, p.adjust.method = "fdr")
+#write.xlsx(Kruskall_Simpson$p.value, file ="Supplementary_Files/Supplementary_Kruskall_Alpha_Diversity_Simpson.xlsx", rowNames = TRUE)
+
+alpha_long <- pivot_longer(
+  Alpha_Diversity,
+  cols = c("Observed", "Shannon", "Simpson", "Chao1"),
+  names_to = "Metric",
+  values_to = "Value"
+)
+
+group_palette <- c(
+  "Chicken_Throat" = "#009E73",
+  "Chicken_Cloacal" = "#800000",       
+  "Duck_Throat" = "#0072B2",
+  "Duck_Cloacal" = "#964B00",          
+  "Air_Slaughter" = "#CC79A7",
+  "Air_Holding" = "#6A5ACD",          
+  "Air_Outside" = "#228B22",           
+  "Wash_Water" = "#F0E442",
+  "Drinking_Water" = "#56B4E9",
+  "Cage" = "#D55E00"
+)
+
+alpha_long$Location_Grouping <- factor(alpha_long$Location_Grouping, levels = names(group_palette))
+
+plot_list <- alpha_long %>%
+  split(.$Metric) %>%
+  map(~ ggplot(.x, aes(x = Location_Grouping, y = Value, fill = Location_Grouping)) +
+        geom_boxplot(outlier.shape = NA, color = "black") +
+        geom_jitter(aes(color = Location_Grouping), width = 0.2, alpha = 0.6, size = 1.5) +
+        scale_fill_manual(values = group_palette) +
+        scale_color_manual(values = group_palette) +
+        theme_minimal() +
+        labs(
+          title = unique(.x$Metric),
+          x = NULL,
+          y = "Alpha Diversity"
+        ) +
+        theme(
+          axis.text.x = element_blank(),      
+          axis.ticks.x = element_blank(),  
+          axis.ticks.y = element_line(color = "black"),
+          axis.line.x = element_line(color = "black"),  
+          axis.line.y = element_line(color = "black"), 
+          axis.text.y = element_text(face = "bold"),
+          axis.title.y = element_text(face = "bold"),
+          plot.title = element_text(hjust = 0, face = "bold"),
+          strip.text = element_text(face = "bold"),
+          panel.border = element_rect(color = "grey50", fill = NA, size = 1),
+          legend.position = "right"
+        ))
+
+final_alpha_plot <- plot_list$Chao1 + plot_list$Shannon + plot_list$Simpson +
+  plot_layout(nrow = 3)
+final_alpha_plot
+ggsave(filename="Alpha_Diversity_Boxplots.pdf", plot = final_alpha_plot, width=200, height=280, units="mm")
+ggsave(filename="Observed_Species_Boxplots.pdf", plot = plot_list$Observed, width=200, height=140, units="mm")
+
+#================================================
 #### Avian Species Detection Heatmap - Summary
 #================================================
 Species <- read.xlsx("Avian_Species_Count.xlsx", rowNames = TRUE)
