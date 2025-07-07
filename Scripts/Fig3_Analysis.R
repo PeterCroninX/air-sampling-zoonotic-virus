@@ -207,6 +207,8 @@ Kruskall_Duck_Cloacal_Pct_Contigs <- kwAllPairsDunnTest(Contigs$Duck_Cloacal, Co
 #================================================
 #### DIAMOND - Gene - Coverage Statistics
 #================================================
+cat DIAMOND_PID_Coverage_Annotated.part_* > DIAMOND_PID_Coverage_Annotated.xlsx #combine files into one part to procced with analysis
+
 Species <- read.xlsx("DIAMOND/DIAMOND_PID_Coverage_Annotated.xlsx")
 Metadata <- read.xlsx("Metadata.xlsx", rowNames = TRUE)
 
